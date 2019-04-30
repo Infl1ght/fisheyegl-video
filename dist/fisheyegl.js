@@ -53,7 +53,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   options.width = options.width || 800;
   options.height = options.height || 600;
 
-  const model = options.model || {
+  const model = {
     vertex: [
       -1.0, -1.0, 0.0,
       1.0, -1.0, 0.0,
@@ -141,6 +141,12 @@ const FisheyeGl = function FisheyeGl(opts) {
     return texture;
   }
 
+  function resize(w, h) {
+    gl.viewport(0, 0, w, h);
+    gl.canvas.width = w;
+    gl.canvas.height = h;
+  }
+
   function loadImageFromUrl(gl, url, callback) {
     const texture = gl.createTexture();
     const img = new Image();
@@ -183,12 +189,6 @@ const FisheyeGl = function FisheyeGl(opts) {
     }
   }
 
-  function resize(w, h) {
-    gl.viewport(0, 0, w, h);
-    gl.canvas.width = w;
-    gl.canvas.height = h;
-  }
-
   options.runner = options.runner || function runner() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
@@ -223,7 +223,43 @@ const FisheyeGl = function FisheyeGl(opts) {
     });
   }
 
-  setImage(image);
+  function setVideo(video) {
+    texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+  
+    // Because video has to be download over the internet
+    // they might take a moment until it's ready so
+    // put a single pixel in the texture so we can
+    // use it immediately.
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+      width, height, border, srcFormat, srcType,
+      pixel);
+
+    // Turn off mips and set  wrapping to clamp to edge so it
+    // will work regardless of the dimensions of the video.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
+  }
+
+  if (options.video) {
+    setInterval(() => {
+      setVideo(options.video);
+      run();
+    }, 100);
+  }
+  // setImage(image);
 
   // asynchronous!
   function getImage(format) {
@@ -248,13 +284,17 @@ const FisheyeGl = function FisheyeGl(opts) {
     getImage,
     setImage,
     getSrc,
+    setVideo,
   };
 
   return distorter;
 };
 
-if (typeof (document) !== 'undefined') {window.FisheyeGl = FisheyeGl;}
-else {module.exports = FisheyeGl;}
+if (typeof (document) !== 'undefined') {
+  window.FisheyeGl = FisheyeGl;
+} else {
+  module.exports = FisheyeGl;
+}
 
 },{"./shaders":2}],2:[function(require,module,exports){
 module.exports = {
