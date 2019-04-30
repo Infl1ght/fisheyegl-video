@@ -1,70 +1,110 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var FisheyeGl = function FisheyeGl(options){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const shaders = require('./shaders');
 
-  // Defaults:
-  options = options || {};
+function getGLContext(canvas) {
+  if (canvas == null) {
+    throw new Error('there is no canvas on this page');
+  }
+  const names = ['webgl', 'experimental-webgl', 'webkit-3d', 'moz-webgl'];
+  for (let i = 0; i < names.length; i += 1) {
+    let glContext;
+    try {
+      glContext = canvas.getContext(names[i], { preserveDrawingBuffer: true });
+    } catch (e) {
+      // continue regardless of error
+    }
+    if (glContext) return glContext;
+  }
+  throw new Error('WebGL is not supported!');
+}
+
+function compileShader(gl, vertexSrc, fragmentSrc) {
+  function checkCompile(shader) {
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      throw new Error(gl.getShaderInfoLog(shader));
+    }
+  }
+
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vertexSrc);
+  gl.compileShader(vertexShader);
+
+  checkCompile(vertexShader);
+
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fragmentSrc);
+  gl.compileShader(fragmentShader);
+
+  checkCompile(fragmentShader);
+
+  const program = gl.createProgram();
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+
+  gl.linkProgram(program);
+
+  return program;
+}
+
+const FisheyeGl = function FisheyeGl(opts) {
+  const options = opts || {};
 
   options.width = options.width || 800;
   options.height = options.height || 600;
 
-  var model = options.model || {
-    vertex :[
+  const model = options.model || {
+    vertex: [
       -1.0, -1.0, 0.0,
-       1.0, -1.0, 0.0,
-       1.0,  1.0, 0.0,
-      -1.0,  1.0, 0.0
+      1.0, -1.0, 0.0,
+      1.0, 1.0, 0.0,
+      -1.0, 1.0, 0.0,
     ],
-    indices :[
+    indices: [
       0, 1, 2,
       0, 2, 3,
       2, 1, 0,
-      3, 2, 0
+      3, 2, 0,
     ],
-    textureCoords : [
+    textureCoords: [
       0.0, 0.0,
       1.0, 0.0,
       1.0, 1.0,
-      0.0, 1.0
-    ]
+      0.0, 1.0,
+    ],
   };
 
-  var lens = options.lens || {
-    a : 1.0,
-    b : 1.0,
-    Fx : 0.0,
-    Fy : 0.0,
-    scale : 1.5
+  const lens = options.lens || {
+    a: 1.0,
+    b: 1.0,
+    Fx: 0.0,
+    Fy: 0.0,
+    scale: 1.5,
   };
-  var fov = options.fov || {
-    x : 1.0,
-    y : 1.0
-  }
-  var image = options.image || "images/barrel-distortion.png";
+  const fov = options.fov || {
+    x: 1.0,
+    y: 1.0,
+  };
+  const image = options.image || 'images/barrel-distortion.png';
 
-  var selector = options.selector || "#canvas";
-  var gl = getGLContext(selector);
+  const gl = getGLContext(options.canvas);
 
-  var shaders = require('./shaders');
-
-  var vertexSrc = loadFile(options.vertexSrc || "vertex");
-  var fragmentSrc = loadFile(options.fragmentSrc || "fragment3");
-
-  var program = compileShader(gl, vertexSrc, fragmentSrc)
+  const program = compileShader(gl, shaders.vertex, shaders.fragment3);
   gl.useProgram(program);
 
-  var aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
-  var aTextureCoord = gl.getAttribLocation(program, "aTextureCoord");
-  var uSampler = gl.getUniformLocation(program, "uSampler");
-  var uLensS = gl.getUniformLocation(program, "uLensS");
-  var uLensF = gl.getUniformLocation(program, "uLensF");
-  var uFov = gl.getUniformLocation(program, "uFov");
+  const aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+  const aTextureCoord = gl.getAttribLocation(program, 'aTextureCoord');
+  const uSampler = gl.getUniformLocation(program, 'uSampler');
+  const uLensS = gl.getUniformLocation(program, 'uLensS');
+  const uLensF = gl.getUniformLocation(program, 'uLensF');
+  const uFov = gl.getUniformLocation(program, 'uFov');
 
-  var vertexBuffer,
-      indexBuffer,
-      textureBuffer;
+  let vertexBuffer;
+  let indexBuffer;
+  let textureBuffer;
+  let texture;
 
   function createBuffers() {
-
     vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertex), gl.STATIC_DRAW);
@@ -79,96 +119,11 @@ var FisheyeGl = function FisheyeGl(options){
     gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textureCoords), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
   }
 
   createBuffers();
 
-  function getGLContext(selector){
-    var canvas = document.querySelector(selector);
-
-    if(canvas == null){
-      throw new Error("there is no canvas on this page");
-    }
-
-    var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
-    for (var i = 0; i < names.length; ++i) {
-      var gl;
-      try {
-        gl = canvas.getContext(names[i], { preserveDrawingBuffer: true });
-      } catch(e) {
-        continue;
-      }
-      if (gl) return gl;
-    }
-
-    throw new Error("WebGL is not supported!");
-  }
-
-  function compileShader(gl, vertexSrc, fragmentSrc){
-    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertexShader, vertexSrc);
-    gl.compileShader(vertexShader);
-
-    _checkCompile(vertexShader);
-
-    var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragmentShader, fragmentSrc);
-    gl.compileShader(fragmentShader);
-
-    _checkCompile(fragmentShader);
-
-    var program = gl.createProgram();
-
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-
-    gl.linkProgram(program);
-
-    return program;
-
-    function _checkCompile(shader){
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(shader));
-      }
-    }
-  }
-
-  function loadFile(url, callback){
-
-    if(shaders.hasOwnProperty(url)) {
-      return shaders[url];
-    }
-
-    var ajax = new XMLHttpRequest();
-
-    if(callback) {
-      ajax.addEventListener("readystatechange", on)
-      ajax.open("GET", url, true);
-      ajax.send(null);
-    } else {
-      ajax.open("GET", url, false);
-      ajax.send(null);
-
-      if(ajax.status == 200){
-        return ajax.responseText;
-      }
-    }
-
-    function on(){
-      if(ajax.readyState === 4){
-        //complete requset
-        if(ajax.status === 200){
-          //not error
-          callback(null, ajax.responseText);
-        } else {
-          callback(new Error("fail to load!"));
-        }
-      }
-    }
-  }
-
-  function loadImage(gl, img, callback, texture){
+  function loadImage(gl, img, callback, texture) {
     texture = texture || gl.createTexture();
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -176,39 +131,39 @@ var FisheyeGl = function FisheyeGl(options){
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); //gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); //Prevents s-coordinate wrapping (repeating).
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); //Prevents t-coordinate wrapping (repeating).
-    //gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); // Prevents s-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); // Prevents t-coordinate wrapping (repeating).
+    // gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
-    if(callback) callback(null, texture);
+    if (callback) callback(null, texture);
     return texture;
   }
 
-  function loadImageFromUrl(gl, url, callback){
-    var texture = gl.createTexture();
-    var img = new Image();
-    img.addEventListener("load", function onload(){
+  function loadImageFromUrl(gl, url, callback) {
+    const texture = gl.createTexture();
+    const img = new Image();
+    img.addEventListener('load', () => {
       loadImage(gl, img, callback, texture);
       options.width = img.width;
       options.height = img.height;
       resize(
         options.width,
-        options.height
-      )
+        options.height,
+      );
     });
     img.src = url;
     return texture;
   }
 
-  function run(animate, callback){
-    var f = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-      window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  function run(animate, callback) {
+    const f = window.requestAnimationFrame || window.mozRequestAnimationFrame
+      || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
     // ugh
-    if(animate === true){
-      if(f){
+    if (animate === true) {
+      if (f) {
         f(on);
       } else {
         throw new Error("do not support 'requestAnimationFram'");
@@ -217,10 +172,10 @@ var FisheyeGl = function FisheyeGl(options){
       f(on);
     }
 
-    var current = null;
-    function on(t){
-      if(!current) current = t;
-      var dt = t - current;
+    let current = null;
+    function on(t) {
+      if (!current) current = t;
+      const dt = t - current;
       current = t;
       options.runner(dt);
       if (callback) callback();
@@ -234,8 +189,7 @@ var FisheyeGl = function FisheyeGl(options){
     gl.canvas.height = h;
   }
 
-  options.runner = options.runner|| function runner(dt){
-
+  options.runner = options.runner || function runner() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
@@ -261,15 +215,11 @@ var FisheyeGl = function FisheyeGl(options){
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
-  }
-
-  var texture;
+  };
 
   function setImage(imageUrl, callback) {
-    texture = loadImageFromUrl(gl, imageUrl, function onImageLoad() {
-
+    texture = loadImageFromUrl(gl, imageUrl, () => {
       run(options.animate, callback);
-
     });
   }
 
@@ -277,41 +227,34 @@ var FisheyeGl = function FisheyeGl(options){
 
   // asynchronous!
   function getImage(format) {
-
-    var img = new Image();
+    const img = new Image();
 
     img.src = gl.canvas.toDataURL(format || 'image/jpeg');
 
     return img;
-
   }
 
   function getSrc(format) {
-
     return gl.canvas.toDataURL(format || 'image/jpeg');
-
   }
 
   // external API:
-  var distorter = {
-    options:  options,
-    gl:       gl,
-    lens:     lens,
-    fov:      fov,
-    run:      run,
-    getImage: getImage,
-    setImage: setImage,
-    getSrc:   getSrc
-  }
+  const distorter = {
+    options,
+    gl,
+    lens,
+    fov,
+    run,
+    getImage,
+    setImage,
+    getSrc,
+  };
 
   return distorter;
+};
 
-}
-
-if (typeof(document) != 'undefined')
-  window.FisheyeGl = FisheyeGl;
-else
-  module.exports = FisheyeGl;
+if (typeof (document) !== 'undefined') {window.FisheyeGl = FisheyeGl;}
+else {module.exports = FisheyeGl;}
 
 },{"./shaders":2}],2:[function(require,module,exports){
 module.exports = {
