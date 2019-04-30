@@ -29,6 +29,36 @@ function compileShader(gl, vertexSrc, fragmentSrc) {
   return program;
 }
 
+function createTexture(glContext) {
+  const texture = glContext.createTexture();
+  glContext.bindTexture(glContext.TEXTURE_2D, texture);
+  // Because video has to be download over the internet
+  // they might take a moment until it's ready so
+  // put a single pixel in the texture so we can
+  // use it immediately.
+  const level = 0;
+  const internalFormat = glContext.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = glContext.RGBA;
+  const srcType = glContext.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+  glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat,
+    width, height, border, srcFormat, srcType,
+    pixel);
+
+  // Turn off mips and set  wrapping to clamp to edge so it
+  // will work regardless of the dimensions of the video.
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_S, glContext.CLAMP_TO_EDGE);
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MIN_FILTER, glContext.LINEAR);
+
+  glContext.bindTexture(glContext.TEXTURE_2D, texture);
+
+  return texture;
+}
+
 const FisheyeGl = function FisheyeGl(opts) {
   const options = opts || {};
 
@@ -83,7 +113,6 @@ const FisheyeGl = function FisheyeGl(opts) {
   let vertexBuffer;
   let indexBuffer;
   let textureBuffer;
-  let texture;
 
   function createBuffers() {
     vertexBuffer = glContext.createBuffer();
@@ -103,6 +132,8 @@ const FisheyeGl = function FisheyeGl(opts) {
   }
 
   createBuffers();
+
+  const texture = createTexture(glContext);
 
   function applyDistortion() {
     glContext.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -132,37 +163,12 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
   }
 
-  texture = glContext.createTexture();
-  glContext.bindTexture(glContext.TEXTURE_2D, texture);
-  // Because video has to be download over the internet
-  // they might take a moment until it's ready so
-  // put a single pixel in the texture so we can
-  // use it immediately.
-  const level = 0;
-  const internalFormat = glContext.RGBA;
-  const width = 1;
-  const height = 1;
-  const border = 0;
-  const srcFormat = glContext.RGBA;
-  const srcType = glContext.UNSIGNED_BYTE;
-  const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-  glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat,
-    width, height, border, srcFormat, srcType,
-    pixel);
-
-  // Turn off mips and set  wrapping to clamp to edge so it
-  // will work regardless of the dimensions of the video.
-  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_S, glContext.CLAMP_TO_EDGE);
-  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
-  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MIN_FILTER, glContext.LINEAR);
-
-  glContext.bindTexture(glContext.TEXTURE_2D, texture);
 
   function updateVideoFrame(video) {
-    // const level = 0;
-    // const internalFormat = gl.RGBA;
-    // const srcFormat = gl.RGBA;
-    // const srcType = gl.UNSIGNED_BYTE;
+    const level = 0;
+    const internalFormat = glContext.RGBA;
+    const srcFormat = glContext.RGBA;
+    const srcType = glContext.UNSIGNED_BYTE;
     glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
 
     applyDistortion();
