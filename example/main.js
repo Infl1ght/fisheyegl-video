@@ -1,15 +1,27 @@
+/* eslint-disable */
+
 var distorter, example;
 
 jQuery(document).ready(function($) {
+  const video = document.querySelector('#video');
+  document.addEventListener('keydown', (data) => {
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  });
 
   distorter = FisheyeGl({
-    image: 'images/grid.png',
-    canvas: document.querySelector('#canvas')
+    glContext: document.querySelector('#canvas').getContext('webgl')
   });
+  setInterval(() => {
+    distorter.updateVideoFrame(video);
+  }, 25);
 
   function onSliderChange() {
     readSliders();  
-    distorter.run();
+    distorter.applyDistortion();
     writeHash();
     updateDisplay();
   }
@@ -19,7 +31,7 @@ jQuery(document).ready(function($) {
   readHash();
   setSliders();
   readSliders();  
-  distorter.run();
+  distorter.applyDistortion();
   updateDisplay();
 
   function updateDisplay() {
@@ -73,7 +85,7 @@ jQuery(document).ready(function($) {
     readHash();
     setSliders();
     updateDisplay();
-    distorter.run();
+    distorter.applyDistortion();
   }
 
   function setSliders() {
@@ -112,12 +124,10 @@ jQuery(document).ready(function($) {
 
       var reader = new FileReader();
       reader.onload = function(e) {
-
         var dataurl = distorter.getSrc();
 //        var bin = atob(dataurl.split(',')[1]);
 //        var exif = EXIF.readFromBinaryFile(new BinaryFile(bin));
 //        console.log(exif);
-
         var uniq = (new Date()).getTime();
         $('#previous').prepend('<a target="_blank" class="' + uniq + '" href="' + dataurl + '"></a>');
         $('.' + uniq).append(distorter.getImage());

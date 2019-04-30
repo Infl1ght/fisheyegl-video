@@ -1,22 +1,5 @@
 const shaders = require('./shaders');
 
-function getGLContext(canvas) {
-  if (canvas == null) {
-    throw new Error('there is no canvas on this page');
-  }
-  const names = ['webgl', 'experimental-webgl', 'webkit-3d', 'moz-webgl'];
-  for (let i = 0; i < names.length; i += 1) {
-    let glContext;
-    try {
-      glContext = canvas.getContext(names[i], { preserveDrawingBuffer: true });
-    } catch (e) {
-      // continue regardless of error
-    }
-    if (glContext) return glContext;
-  }
-  throw new Error('WebGL is not supported!');
-}
-
 function compileShader(gl, vertexSrc, fragmentSrc) {
   function checkCompile(shader) {
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -84,19 +67,18 @@ const FisheyeGl = function FisheyeGl(opts) {
     x: 1.0,
     y: 1.0,
   };
-  const image = options.image || 'images/barrel-distortion.png';
 
-  const gl = getGLContext(options.canvas);
+  const { glContext } = options;
 
-  const program = compileShader(gl, shaders.vertex, shaders.fragment3);
-  gl.useProgram(program);
+  const program = compileShader(glContext, shaders.vertex, shaders.fragment3);
+  glContext.useProgram(program);
 
-  const aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
-  const aTextureCoord = gl.getAttribLocation(program, 'aTextureCoord');
-  const uSampler = gl.getUniformLocation(program, 'uSampler');
-  const uLensS = gl.getUniformLocation(program, 'uLensS');
-  const uLensF = gl.getUniformLocation(program, 'uLensF');
-  const uFov = gl.getUniformLocation(program, 'uFov');
+  const aVertexPosition = glContext.getAttribLocation(program, 'aVertexPosition');
+  const aTextureCoord = glContext.getAttribLocation(program, 'aTextureCoord');
+  const uSampler = glContext.getUniformLocation(program, 'uSampler');
+  const uLensS = glContext.getUniformLocation(program, 'uLensS');
+  const uLensF = glContext.getUniformLocation(program, 'uLensF');
+  const uFov = glContext.getUniformLocation(program, 'uFov');
 
   let vertexBuffer;
   let indexBuffer;
@@ -104,185 +86,94 @@ const FisheyeGl = function FisheyeGl(opts) {
   let texture;
 
   function createBuffers() {
-    vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertex), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    vertexBuffer = glContext.createBuffer();
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
+    glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array(model.vertex), glContext.STATIC_DRAW);
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, null);
 
-    indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(model.indices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    indexBuffer = glContext.createBuffer();
+    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glContext.bufferData(glContext.ELEMENT_ARRAY_BUFFER, new Uint16Array(model.indices), glContext.STATIC_DRAW);
+    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, null);
 
-    textureBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.textureCoords), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    textureBuffer = glContext.createBuffer();
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, textureBuffer);
+    glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array(model.textureCoords), glContext.STATIC_DRAW);
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, null);
   }
 
   createBuffers();
 
-  function loadImage(gl, img, callback, texture) {
-    texture = texture || gl.createTexture();
+  function applyDistortion() {
+    glContext.clearColor(0.0, 0.0, 0.0, 1.0);
+    glContext.enable(glContext.DEPTH_TEST);
 
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    glContext.clear(glContext.COLOR_BUFFER_BIT | glContext.DEPTH_BUFFER_BIT);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    glContext.enableVertexAttribArray(aVertexPosition);
 
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); // Prevents s-coordinate wrapping (repeating).
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); // Prevents t-coordinate wrapping (repeating).
-    // gl.generateMipmap(gl.TEXTURE_2D);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
+    glContext.vertexAttribPointer(aVertexPosition, 3, glContext.FLOAT, false, 0, 0);
 
-    if (callback) callback(null, texture);
-    return texture;
+    glContext.enableVertexAttribArray(aTextureCoord);
+
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, textureBuffer);
+    glContext.vertexAttribPointer(aTextureCoord, 2, glContext.FLOAT, false, 0, 0);
+
+    glContext.activeTexture(glContext.TEXTURE0);
+    glContext.bindTexture(glContext.TEXTURE_2D, texture);
+    glContext.uniform1i(uSampler, 0);
+
+    glContext.uniform3fv(uLensS, [lens.a, lens.b, lens.scale]);
+    glContext.uniform2fv(uLensF, [lens.Fx, lens.Fy]);
+    glContext.uniform2fv(uFov, [fov.x, fov.y]);
+
+    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
   }
 
-  function resize(w, h) {
-    gl.viewport(0, 0, w, h);
-    gl.canvas.width = w;
-    gl.canvas.height = h;
+  texture = glContext.createTexture();
+  glContext.bindTexture(glContext.TEXTURE_2D, texture);
+  // Because video has to be download over the internet
+  // they might take a moment until it's ready so
+  // put a single pixel in the texture so we can
+  // use it immediately.
+  const level = 0;
+  const internalFormat = glContext.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = glContext.RGBA;
+  const srcType = glContext.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+  glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat,
+    width, height, border, srcFormat, srcType,
+    pixel);
+
+  // Turn off mips and set  wrapping to clamp to edge so it
+  // will work regardless of the dimensions of the video.
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_S, glContext.CLAMP_TO_EDGE);
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
+  glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MIN_FILTER, glContext.LINEAR);
+
+  glContext.bindTexture(glContext.TEXTURE_2D, texture);
+
+  function updateVideoFrame(video) {
+    // const level = 0;
+    // const internalFormat = gl.RGBA;
+    // const srcFormat = gl.RGBA;
+    // const srcType = gl.UNSIGNED_BYTE;
+    glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
+
+    applyDistortion();
   }
 
-  function loadImageFromUrl(gl, url, callback) {
-    const texture = gl.createTexture();
-    const img = new Image();
-    img.addEventListener('load', () => {
-      loadImage(gl, img, callback, texture);
-      options.width = img.width;
-      options.height = img.height;
-      resize(
-        options.width,
-        options.height,
-      );
-    });
-    img.src = url;
-    return texture;
-  }
-
-  function run(animate, callback) {
-    const f = window.requestAnimationFrame || window.mozRequestAnimationFrame
-      || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
-    // ugh
-    if (animate === true) {
-      if (f) {
-        f(on);
-      } else {
-        throw new Error("do not support 'requestAnimationFram'");
-      }
-    } else {
-      f(on);
-    }
-
-    let current = null;
-    function on(t) {
-      if (!current) current = t;
-      const dt = t - current;
-      current = t;
-      options.runner(dt);
-      if (callback) callback();
-      if (animate === true) f(on);
-    }
-  }
-
-  options.runner = options.runner || function runner() {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.enableVertexAttribArray(aVertexPosition);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, 0, 0);
-
-    gl.enableVertexAttribArray(aTextureCoord);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-    gl.vertexAttribPointer(aTextureCoord, 2, gl.FLOAT, false, 0, 0);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(uSampler, 0);
-
-    gl.uniform3fv(uLensS, [lens.a, lens.b, lens.scale]);
-    gl.uniform2fv(uLensF, [lens.Fx, lens.Fy]);
-    gl.uniform2fv(uFov, [fov.x, fov.y]);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
-  };
-
-  function setImage(imageUrl, callback) {
-    texture = loadImageFromUrl(gl, imageUrl, () => {
-      run(options.animate, callback);
-    });
-  }
-
-  function setVideo(video) {
-    texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    // Because video has to be download over the internet
-    // they might take a moment until it's ready so
-    // put a single pixel in the texture so we can
-    // use it immediately.
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const width = 1;
-    const height = 1;
-    const border = 0;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-      width, height, border, srcFormat, srcType,
-      pixel);
-
-    // Turn off mips and set  wrapping to clamp to edge so it
-    // will work regardless of the dimensions of the video.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
-  }
-
-  if (options.video) {
-    setInterval(() => {
-      setVideo(options.video);
-      run();
-    }, 100);
-  }
-  // setImage(image);
-
-  // asynchronous!
-  function getImage(format) {
-    const img = new Image();
-
-    img.src = gl.canvas.toDataURL(format || 'image/jpeg');
-
-    return img;
-  }
-
-  function getSrc(format) {
-    return gl.canvas.toDataURL(format || 'image/jpeg');
-  }
-
-  // external API:
   const distorter = {
     options,
-    gl,
     lens,
     fov,
-    run,
-    getImage,
-    setImage,
-    getSrc,
-    setVideo,
+    applyDistortion,
+    updateVideoFrame,
   };
 
   return distorter;
