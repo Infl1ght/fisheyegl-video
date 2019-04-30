@@ -3,7 +3,8 @@ var distorter, example;
 jQuery(document).ready(function($) {
 
   distorter = FisheyeGl({
-    image: 'images/grid.png'
+    image: 'images/grid.png',
+    canvas: document.querySelector('#canvas')
   });
 
   function onSliderChange() {
