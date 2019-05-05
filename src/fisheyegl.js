@@ -184,6 +184,6 @@ const FisheyeGl = function FisheyeGl(opts) {
 
 if (typeof (document) !== 'undefined') {
   window.FisheyeGl = FisheyeGl;
-} else {
-  module.exports = FisheyeGl;
 }
+
+module.exports = FisheyeGl;

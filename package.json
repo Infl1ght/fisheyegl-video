@@ -1,6 +1,6 @@
 {
   "name": "fisheyegl-video",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "A JavaScript library for correcting fisheye, or barrel distortion, in videos in the browser with WebGL",
   "main": "src/fisheyegl.js",
   "scripts": {},
