@@ -1,6 +1,6 @@
 {
   "name": "fisheyegl-video",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "A JavaScript library for correcting fisheye, or barrel distortion, in videos in the browser with WebGL",
   "main": "src/fisheyegl.js",
   "scripts": {},
@@ -15,7 +15,7 @@
     "barrel distortion",
     "fisheye"
   ],
-  "author": "Public Lab",
+  "author": "Ilya Volkov <ilya.inflight@gmail.com>",
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/Infl1ght/fisheyegl-video/issues"

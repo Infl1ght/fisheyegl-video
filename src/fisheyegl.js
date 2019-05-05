@@ -62,9 +62,6 @@ function createTexture(glContext) {
 const FisheyeGl = function FisheyeGl(opts) {
   const options = opts || {};
 
-  options.width = options.width || 800;
-  options.height = options.height || 600;
-
   const model = {
     vertex: [
       -1.0, -1.0, 0.0,

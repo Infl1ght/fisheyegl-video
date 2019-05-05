@@ -62,10 +62,7 @@ function createTexture(glContext) {
 
 const FisheyeGl = function FisheyeGl(opts) {
   const options = opts || {};
-
-  options.width = options.width || 800;
-  options.height = options.height || 600;
-
+  
   const model = {
     vertex: [
       -1.0, -1.0, 0.0,
@@ -114,7 +111,6 @@ const FisheyeGl = function FisheyeGl(opts) {
   let vertexBuffer;
   let indexBuffer;
   let textureBuffer;
-  let texture;
 
   function createBuffers() {
     vertexBuffer = glContext.createBuffer();
@@ -134,6 +130,8 @@ const FisheyeGl = function FisheyeGl(opts) {
   }
 
   createBuffers();
+
+  const texture = createTexture(glContext);
 
   function applyDistortion() {
     glContext.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -163,7 +161,6 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
   }
 
-  texture = createTexture(glContext);
 
   function updateVideoFrame(video) {
     const level = 0;
