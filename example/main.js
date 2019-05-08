@@ -35,43 +35,31 @@ jQuery(document).ready(function($) {
   updateDisplay();
 
   function updateDisplay() {
-    $("#display .a")[0].innerHTML     = distorter.lens.a;
-    $("#display .b")[0].innerHTML     = distorter.lens.b;
-    $("#display .Fx")[0].innerHTML    = distorter.lens.Fx;
-    $("#display .Fy")[0].innerHTML    = distorter.lens.Fy;
-    $("#display .scale")[0].innerHTML = distorter.lens.scale;
-    $("#display .x")[0].innerHTML     = distorter.fov.x;
-    $("#display .y")[0].innerHTML     = distorter.fov.y;
+    $("#display .scale")[0].innerHTML = distorter.dist.scale;
+    $("#display .k3")[0].innerHTML    = distorter.dist.k3;
+    $("#display .k5")[0].innerHTML    = distorter.dist.k5;
+    $("#display .k7")[0].innerHTML    = distorter.dist.k7;
   }
 
   function readSliders() {
-    distorter.lens.a     = parseFloat($("#a_label")[0].innerHTML = $("#a").val());
-    distorter.lens.b     = parseFloat($("#b_label")[0].innerHTML = $("#b").val());
-    distorter.lens.Fx    = parseFloat($("#Fx_label")[0].innerHTML = $("#Fx").val());
-    distorter.lens.Fy    = parseFloat($("#Fy_label")[0].innerHTML = $("#Fy").val());
-    distorter.lens.scale = parseFloat($("#scale_label")[0].innerHTML = $("#scale").val());
-    distorter.fov.x      = parseFloat($("#fovx").val());
-    distorter.fov.y      = parseFloat($("#fovy").val());
+    distorter.dist.scale = parseFloat($("#scale_label")[0].innerHTML = $("#scale").val());
+    distorter.dist.k3    = parseFloat($("#k3").val());
+    distorter.dist.k5    = parseFloat($("#k5").val());
+    distorter.dist.k7    = parseFloat($("#k7").val());
   }
 
   function writeHash() {
-    setUrlHashParameter("a",     distorter.lens.a);
-    setUrlHashParameter("b",     distorter.lens.b);
-    setUrlHashParameter("Fx",    distorter.lens.Fx);
-    setUrlHashParameter("Fy",    distorter.lens.Fy);
-    setUrlHashParameter("scale", distorter.lens.scale);
-    setUrlHashParameter("x",     distorter.fov.x);
-    setUrlHashParameter("y",     distorter.fov.y);
+    setUrlHashParameter("scale", distorter.dist.scale);
+    setUrlHashParameter("k3",     distorter.dist.k3);
+    setUrlHashParameter("k5",     distorter.dist.k5);
+    setUrlHashParameter("k7",     distorter.dist.k7);
   }
 
   function readHash() { 
-    distorter.lens.a     = parseFloat(getUrlHashParameter("a"))     || distorter.lens.a;
-    distorter.lens.b     = parseFloat(getUrlHashParameter("b"))     || distorter.lens.b;
-    distorter.lens.Fx    = parseFloat(getUrlHashParameter("Fx"))    || distorter.lens.Fx;
-    distorter.lens.Fy    = parseFloat(getUrlHashParameter("Fy"))    || distorter.lens.Fy;
-    distorter.lens.scale = parseFloat(getUrlHashParameter("scale")) || distorter.lens.scale;
-    distorter.fov.x      = parseFloat(getUrlHashParameter("x"))     || distorter.fov.x;
-    distorter.fov.y      = parseFloat(getUrlHashParameter("y"))     || distorter.fov.y; 
+    distorter.dist.scale = parseFloat(getUrlHashParameter("scale")) || distorter.dist.scale;
+    distorter.dist.k3      = parseFloat(getUrlHashParameter("k3"))     || distorter.dist.k3;
+    distorter.dist.k5      = parseFloat(getUrlHashParameter("k5"))     || distorter.dist.k5; 
+    distorter.dist.k7      = parseFloat(getUrlHashParameter("k7"))     || distorter.dist.k7; 
   }
 
   // not quite working:
@@ -89,18 +77,11 @@ jQuery(document).ready(function($) {
   }
 
   function setSliders() {
-    $("#a").val(distorter.lens.a);
-      $("#a_label")[0].innerHTML = distorter.lens.a;
-    $("#b").val(distorter.lens.b);
-      $("#b_label")[0].innerHTML = distorter.lens.b;
-    $("#Fx").val(distorter.lens.Fx);
-      $("#Fx_label")[0].innerHTML = distorter.lens.Fx;
-    $("#Fy").val(distorter.lens.Fy);
-      $("#Fy_label")[0].innerHTML = distorter.lens.Fy;
-    $("#scale").val(distorter.lens.scale);
-      $("#scale_label")[0].innerHTML = distorter.lens.scale;
-    $("#fovx").val(distorter.fov.x);
-    $("#fovy").val(distorter.fov.y);
+    $("#scale").val(distorter.dist.scale);
+      $("#scale_label")[0].innerHTML = distorter.dist.scale;
+    $("#k3").val(distorter.dist.k3);
+    $("#k5").val(distorter.dist.k5);
+    $("#k7").val(distorter.dist.k7);
   }
 
 

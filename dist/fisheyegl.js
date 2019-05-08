@@ -62,7 +62,7 @@ function createTexture(glContext) {
 
 const FisheyeGl = function FisheyeGl(opts) {
   const options = opts || {};
-  
+
   const model = {
     vertex: [
       -1.0, -1.0, 0.0,
@@ -84,29 +84,24 @@ const FisheyeGl = function FisheyeGl(opts) {
     ],
   };
 
-  const lens = options.lens || {
-    a: 1.0,
-    b: 1.0,
-    Fx: 0.0,
-    Fy: 0.0,
-    scale: 1.5,
-  };
-  const fov = options.fov || {
-    x: 1.0,
-    y: 1.0,
+  const dist = options.dist || {
+    scale: 0,
+    k3: 0,
+    k5: 0,
+    k7: 0,
   };
 
   const { glContext } = options;
 
-  const program = compileShader(glContext, shaders.vertex, shaders.fragment3);
+  const program = compileShader(glContext, shaders.vertex, shaders.fragment4);
   glContext.useProgram(program);
 
   const aVertexPosition = glContext.getAttribLocation(program, 'aVertexPosition');
   const aTextureCoord = glContext.getAttribLocation(program, 'aTextureCoord');
   const uSampler = glContext.getUniformLocation(program, 'uSampler');
-  const uLensS = glContext.getUniformLocation(program, 'uLensS');
-  const uLensF = glContext.getUniformLocation(program, 'uLensF');
-  const uFov = glContext.getUniformLocation(program, 'uFov');
+  const uScale = glContext.getUniformLocation(program, 'uScale');
+  const uSize = glContext.getUniformLocation(program, 'uSize');
+  const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
   let vertexBuffer;
   let indexBuffer;
@@ -153,9 +148,9 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.bindTexture(glContext.TEXTURE_2D, texture);
     glContext.uniform1i(uSampler, 0);
 
-    glContext.uniform3fv(uLensS, [lens.a, lens.b, lens.scale]);
-    glContext.uniform2fv(uLensF, [lens.Fx, lens.Fy]);
-    glContext.uniform2fv(uFov, [fov.x, fov.y]);
+    glContext.uniform1f(uScale, dist.scale);
+    glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
+    glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
     glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
@@ -174,8 +169,7 @@ const FisheyeGl = function FisheyeGl(opts) {
 
   const distorter = {
     options,
-    lens,
-    fov,
+    dist,
     applyDistortion,
     updateVideoFrame,
   };
@@ -185,27 +179,29 @@ const FisheyeGl = function FisheyeGl(opts) {
 
 if (typeof (document) !== 'undefined') {
   window.FisheyeGl = FisheyeGl;
-} else {
-  module.exports = FisheyeGl;
 }
+
+module.exports = FisheyeGl;
 
 },{"./shaders":2}],2:[function(require,module,exports){
 module.exports = {
   fragment: require('./shaders/fragment.glfs'),
   fragment2: require('./shaders/fragment2.glfs'),
   fragment3: require('./shaders/fragment3.glfs'),
+  fragment4: require('./shaders/fragment4.glfs'),
   method1: require('./shaders/method1.glfs'),
   method2: require('./shaders/method2.glfs'),
   vertex: require('./shaders/vertex.glvs')
 };
 
-},{"./shaders/fragment.glfs":3,"./shaders/fragment2.glfs":4,"./shaders/fragment3.glfs":5,"./shaders/method1.glfs":6,"./shaders/method2.glfs":7,"./shaders/vertex.glvs":8}],3:[function(require,module,exports){
+},{"./shaders/fragment.glfs":3,"./shaders/fragment2.glfs":4,"./shaders/fragment3.glfs":5,"./shaders/fragment4.glfs":6,"./shaders/method1.glfs":7,"./shaders/method2.glfs":8,"./shaders/vertex.glvs":9}],3:[function(require,module,exports){
 module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\
 #endif\n\
 uniform vec4 uLens;\n\
 uniform vec2 uFov;\n\
+uniform float uScale;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
@@ -216,7 +212,7 @@ void main(void){\n\
 	float scale = uLens.w;\n\
 	float F = uLens.z;\n\
 	\n\
-	float L = length(vec3(vPosition.xy/scale, F));\n\
+	float L = length( (vPosition.xy/scale, F));\n\
 	vec2 vMapping = vPosition.xy * F / L;\n\
 	vMapping = vMapping * uLens.xy;\n\
 	vMapping = GLCoord2TextureCoord(vMapping/scale);\n\
@@ -296,6 +292,48 @@ module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\
 #endif\n\
+uniform vec2 uSize;\n\
+uniform vec3 uDistortion;\n\
+uniform float uScale;\n\
+uniform sampler2D uSampler;\n\
+varying vec3 vPosition;\n\
+varying vec2 vTextureCoord;\n\
+vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
+	return glCoord * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);\n\
+}\n\
+void main(void){\n\
+	float scale = uScale;\n\
+	vec3 vPos = vPosition;\n\
+  float ratio = uSize[0] / uSize[1];\n\
+  float k3 = uDistortion[0] / 200.0;\n\
+  float k5 = uDistortion[1] / 200.0;\n\
+  float k7 = uDistortion[2] / 200.0;\n\
+	vec2 vMapping = vPos.xy;\n\
+  vMapping.x *= uSize[0] / 2.0; \n\
+  vMapping.y *= uSize[1] / 2.0; \n\
+  float off_x = vMapping.x;\n\
+  float off_y = vMapping.y;\n\
+  float r2 = (off_x * off_x) + (off_y * off_y);\n\
+  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);;\n\
+  float r4 = r2 * r2;\n\
+  float r6 = r2 * r2 * r2;\n\
+  float rescale = pow(2.0, - scale / 100.0);\n\
+  float radius_mult = rescale * (k3 * r2 + k5 * r4 + k7 * r6 + 1.0);\n\
+	vMapping.x = radius_mult * off_x / uSize[0] * 2.0;\n\
+	vMapping.y = radius_mult * off_y / uSize[1] * 2.0;\n\
+	vMapping = GLCoord2TextureCoord(vMapping);\n\
+	vec4 texture = texture2D(uSampler, vMapping);\n\
+	if(vMapping.x > 0.9999 || vMapping.x < 0.0001 || vMapping.y > 0.9999 || vMapping.y < 0.0001){\n\
+		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
+	}\n\
+	gl_FragColor = texture;\n\
+}\n\
+";
+},{}],7:[function(require,module,exports){
+module.exports = "\
+#ifdef GL_ES\n\
+precision highp float;\n\
+#endif\n\
 uniform vec4 uLens;\n\
 uniform vec2 uFov;\n\
 uniform sampler2D uSampler;\n\
@@ -323,7 +361,7 @@ void main(void){\n\
 	gl_FragColor = texture;\n\
 }\n\
 ";
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\
@@ -355,7 +393,7 @@ void main(void){\n\
 	gl_FragColor = texture;\n\
 }\n\
 ";
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\

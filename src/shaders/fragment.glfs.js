@@ -4,6 +4,7 @@ precision highp float;\n\
 #endif\n\
 uniform vec4 uLens;\n\
 uniform vec2 uFov;\n\
+uniform float uScale;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
@@ -14,7 +15,7 @@ void main(void){\n\
 	float scale = uLens.w;\n\
 	float F = uLens.z;\n\
 	\n\
-	float L = length(vec3(vPosition.xy/scale, F));\n\
+	float L = length( (vPosition.xy/scale, F));\n\
 	vec2 vMapping = vPosition.xy * F / L;\n\
 	vMapping = vMapping * uLens.xy;\n\
 	vMapping = GLCoord2TextureCoord(vMapping/scale);\n\

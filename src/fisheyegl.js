@@ -83,29 +83,24 @@ const FisheyeGl = function FisheyeGl(opts) {
     ],
   };
 
-  const lens = options.lens || {
-    a: 1.0,
-    b: 1.0,
-    Fx: 0.0,
-    Fy: 0.0,
-    scale: 1.5,
-  };
-  const fov = options.fov || {
-    x: 1.0,
-    y: 1.0,
+  const dist = options.dist || {
+    scale: 0,
+    k3: 0,
+    k5: 0,
+    k7: 0,
   };
 
   const { glContext } = options;
 
-  const program = compileShader(glContext, shaders.vertex, shaders.fragment3);
+  const program = compileShader(glContext, shaders.vertex, shaders.fragment4);
   glContext.useProgram(program);
 
   const aVertexPosition = glContext.getAttribLocation(program, 'aVertexPosition');
   const aTextureCoord = glContext.getAttribLocation(program, 'aTextureCoord');
   const uSampler = glContext.getUniformLocation(program, 'uSampler');
-  const uLensS = glContext.getUniformLocation(program, 'uLensS');
-  const uLensF = glContext.getUniformLocation(program, 'uLensF');
-  const uFov = glContext.getUniformLocation(program, 'uFov');
+  const uScale = glContext.getUniformLocation(program, 'uScale');
+  const uSize = glContext.getUniformLocation(program, 'uSize');
+  const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
   let vertexBuffer;
   let indexBuffer;
@@ -152,9 +147,9 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.bindTexture(glContext.TEXTURE_2D, texture);
     glContext.uniform1i(uSampler, 0);
 
-    glContext.uniform3fv(uLensS, [lens.a, lens.b, lens.scale]);
-    glContext.uniform2fv(uLensF, [lens.Fx, lens.Fy]);
-    glContext.uniform2fv(uFov, [fov.x, fov.y]);
+    glContext.uniform1f(uScale, dist.scale);
+    glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
+    glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
     glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
@@ -173,8 +168,7 @@ const FisheyeGl = function FisheyeGl(opts) {
 
   const distorter = {
     options,
-    lens,
-    fov,
+    dist,
     applyDistortion,
     updateVideoFrame,
   };

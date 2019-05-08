@@ -1,0 +1,50 @@
+#ifdef GL_ES
+precision highp float;
+#endif
+
+uniform vec2 uSize;
+uniform vec3 uDistortion;
+uniform float uScale;
+
+uniform sampler2D uSampler;
+
+varying vec3 vPosition;
+varying vec2 vTextureCoord;
+
+vec2 GLCoord2TextureCoord(vec2 glCoord) {
+	return glCoord * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);
+}
+
+void main(void){
+	float scale = uScale;
+	vec3 vPos = vPosition;
+  float ratio = uSize[0] / uSize[1];
+  float k3 = uDistortion[0] / 200.0;
+  float k5 = uDistortion[1] / 200.0;
+  float k7 = uDistortion[2] / 200.0;
+
+	vec2 vMapping = vPos.xy;
+  vMapping.x *= uSize[0] / 2.0; 
+  vMapping.y *= uSize[1] / 2.0; 
+
+  float off_x = vMapping.x;
+  float off_y = vMapping.y;
+  float r2 = (off_x * off_x) + (off_y * off_y);
+  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);;
+  float r4 = r2 * r2;
+  float r6 = r2 * r2 * r2;
+  float rescale = pow(2.0, - scale / 100.0);
+  float radius_mult = rescale * (k3 * r2 + k5 * r4 + k7 * r6 + 1.0);
+
+
+	vMapping.x = radius_mult * off_x / uSize[0] * 2.0;
+	vMapping.y = radius_mult * off_y / uSize[1] * 2.0;
+
+	vMapping = GLCoord2TextureCoord(vMapping);
+
+	vec4 texture = texture2D(uSampler, vMapping);
+	if(vMapping.x > 0.9999 || vMapping.x < 0.0001 || vMapping.y > 0.9999 || vMapping.y < 0.0001){
+		texture = vec4(0.0, 0.0, 0.0, 1.0);
+	}
+	gl_FragColor = texture;
+}
