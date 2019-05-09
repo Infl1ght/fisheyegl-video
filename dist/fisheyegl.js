@@ -305,9 +305,9 @@ void main(void){\n\
 	float scale = uScale;\n\
 	vec3 vPos = vPosition;\n\
   float ratio = uSize[0] / uSize[1];\n\
-  float k3 = uDistortion[0] / 200.0;\n\
-  float k5 = uDistortion[1] / 200.0;\n\
-  float k7 = uDistortion[2] / 200.0;\n\
+  float k3 = uDistortion[0] / 100.0;\n\
+  float k5 = uDistortion[1] / 100.0;\n\
+  float k7 = uDistortion[2] / 100.0;\n\
 	vec2 vMapping = vPos.xy;\n\
   vMapping.x *= uSize[0] / 2.0; \n\
   vMapping.y *= uSize[1] / 2.0; \n\

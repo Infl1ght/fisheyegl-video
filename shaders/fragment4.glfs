@@ -19,9 +19,9 @@ void main(void){
 	float scale = uScale;
 	vec3 vPos = vPosition;
   float ratio = uSize[0] / uSize[1];
-  float k3 = uDistortion[0] / 200.0;
-  float k5 = uDistortion[1] / 200.0;
-  float k7 = uDistortion[2] / 200.0;
+  float k3 = uDistortion[0] / 100.0;
+  float k5 = uDistortion[1] / 100.0;
+  float k7 = uDistortion[2] / 100.0;
 
 	vec2 vMapping = vPos.xy;
   vMapping.x *= uSize[0] / 2.0; 
