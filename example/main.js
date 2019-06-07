@@ -39,6 +39,7 @@ jQuery(document).ready(function($) {
     $("#display .k3")[0].innerHTML    = distorter.dist.k3;
     $("#display .k5")[0].innerHTML    = distorter.dist.k5;
     $("#display .k7")[0].innerHTML    = distorter.dist.k7;
+    $("#display .zoom")[0].innerHTML    = distorter.dist.zoom;
   }
 
   function readSliders() {
@@ -46,6 +47,7 @@ jQuery(document).ready(function($) {
     distorter.dist.k3    = parseFloat($("#k3").val());
     distorter.dist.k5    = parseFloat($("#k5").val());
     distorter.dist.k7    = parseFloat($("#k7").val());
+    distorter.dist.zoom    = parseFloat($("#zoom").val());
   }
 
   function writeHash() {
@@ -53,6 +55,7 @@ jQuery(document).ready(function($) {
     setUrlHashParameter("k3",     distorter.dist.k3);
     setUrlHashParameter("k5",     distorter.dist.k5);
     setUrlHashParameter("k7",     distorter.dist.k7);
+    setUrlHashParameter("zoom",     distorter.dist.zoom);
   }
 
   function readHash() { 
@@ -60,6 +63,7 @@ jQuery(document).ready(function($) {
     distorter.dist.k3      = parseFloat(getUrlHashParameter("k3"))     || distorter.dist.k3;
     distorter.dist.k5      = parseFloat(getUrlHashParameter("k5"))     || distorter.dist.k5; 
     distorter.dist.k7      = parseFloat(getUrlHashParameter("k7"))     || distorter.dist.k7; 
+    distorter.dist.zoom      = parseFloat(getUrlHashParameter("zoom"))     || distorter.dist.zoom; 
   }
 
   // not quite working:
@@ -82,6 +86,7 @@ jQuery(document).ready(function($) {
     $("#k3").val(distorter.dist.k3);
     $("#k5").val(distorter.dist.k5);
     $("#k7").val(distorter.dist.k7);
+    $("#zoom").val(distorter.dist.zoom);
   }
 
 

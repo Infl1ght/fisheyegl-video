@@ -5,6 +5,7 @@ precision highp float;
 uniform vec2 uSize;
 uniform vec3 uDistortion;
 uniform float uScale;
+uniform float uZoom;
 
 uniform sampler2D uSampler;
 
@@ -12,12 +13,13 @@ varying vec3 vPosition;
 varying vec2 vTextureCoord;
 
 vec2 GLCoord2TextureCoord(vec2 glCoord) {
-	return glCoord * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);
+	return glCoord * vec2(1.0, -1.0) / 2.0 + vec2(0.5, 0.5);
 }
 
 void main(void){
 	float scale = uScale;
-	vec3 vPos = vPosition;
+  float zoom = uZoom;
+	vec3 vPos = vPosition / zoom;
   float ratio = uSize[0] / uSize[1];
   float k3 = uDistortion[0] / 100.0;
   float k5 = uDistortion[1] / 100.0;

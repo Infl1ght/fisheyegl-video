@@ -5,15 +5,17 @@ precision highp float;\n\
 uniform vec2 uSize;\n\
 uniform vec3 uDistortion;\n\
 uniform float uScale;\n\
+uniform float uZoom;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
 vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);\n\
+	return glCoord * vec2(1.0, -1.0) / 2.0 + vec2(0.5, 0.5);\n\
 }\n\
 void main(void){\n\
 	float scale = uScale;\n\
-	vec3 vPos = vPosition;\n\
+  float zoom = uZoom;\n\
+	vec3 vPos = vPosition / zoom;\n\
   float ratio = uSize[0] / uSize[1];\n\
   float k3 = uDistortion[0] / 100.0;\n\
   float k5 = uDistortion[1] / 100.0;\n\

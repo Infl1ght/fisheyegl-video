@@ -86,6 +86,7 @@ const FisheyeGl = function FisheyeGl(opts) {
 
   const dist = options.dist || {
     scale: 0,
+    zoom: 1,
     k3: 0,
     k5: 0,
     k7: 0,
@@ -100,6 +101,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const aTextureCoord = glContext.getAttribLocation(program, 'aTextureCoord');
   const uSampler = glContext.getUniformLocation(program, 'uSampler');
   const uScale = glContext.getUniformLocation(program, 'uScale');
+  const uZoom = glContext.getUniformLocation(program, 'uZoom');
   const uSize = glContext.getUniformLocation(program, 'uSize');
   const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
@@ -149,6 +151,7 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.uniform1i(uSampler, 0);
 
     glContext.uniform1f(uScale, dist.scale);
+    glContext.uniform1f(uZoom, dist.zoom);
     glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
     glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
@@ -185,109 +188,11 @@ module.exports = FisheyeGl;
 
 },{"./shaders":2}],2:[function(require,module,exports){
 module.exports = {
-  fragment: require('./shaders/fragment.glfs'),
-  fragment2: require('./shaders/fragment2.glfs'),
-  fragment3: require('./shaders/fragment3.glfs'),
   fragment4: require('./shaders/fragment4.glfs'),
-  method1: require('./shaders/method1.glfs'),
-  method2: require('./shaders/method2.glfs'),
   vertex: require('./shaders/vertex.glvs')
 };
 
-},{"./shaders/fragment.glfs":3,"./shaders/fragment2.glfs":4,"./shaders/fragment3.glfs":5,"./shaders/fragment4.glfs":6,"./shaders/method1.glfs":7,"./shaders/method2.glfs":8,"./shaders/vertex.glvs":9}],3:[function(require,module,exports){
-module.exports = "\
-#ifdef GL_ES\n\
-precision highp float;\n\
-#endif\n\
-uniform vec4 uLens;\n\
-uniform vec2 uFov;\n\
-uniform float uScale;\n\
-uniform sampler2D uSampler;\n\
-varying vec3 vPosition;\n\
-varying vec2 vTextureCoord;\n\
-vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord  * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);\n\
-}\n\
-void main(void){\n\
-	float scale = uLens.w;\n\
-	float F = uLens.z;\n\
-	\n\
-	float L = length( (vPosition.xy/scale, F));\n\
-	vec2 vMapping = vPosition.xy * F / L;\n\
-	vMapping = vMapping * uLens.xy;\n\
-	vMapping = GLCoord2TextureCoord(vMapping/scale);\n\
-	vec4 texture = texture2D(uSampler, vMapping);\n\
-	if(vMapping.x > 0.99 || vMapping.x < 0.01 || vMapping.y > 0.99 || vMapping.y < 0.01){\n\
-		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
-	} \n\
-	gl_FragColor = texture;\n\
-}\n\
-";
-},{}],4:[function(require,module,exports){
-module.exports = "\
-#ifdef GL_ES\n\
-precision highp float;\n\
-#endif\n\
-uniform vec4 uLens;\n\
-uniform vec2 uFov;\n\
-uniform sampler2D uSampler;\n\
-varying vec3 vPosition;\n\
-varying vec2 vTextureCoord;\n\
-vec2 TextureCoord2GLCoord(vec2 textureCoord) {\n\
-	return (textureCoord - vec2(0.5, 0.5)) * 2.0;\n\
-}\n\
-vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord / 2.0 + vec2(0.5, 0.5);\n\
-}\n\
-void main(void){\n\
-	float correctionRadius = 0.5;\n\
-	float distance = sqrt(vPosition.x * vPosition.x + vPosition.y * vPosition.y) / correctionRadius;\n\
-	float theta = 1.0;\n\
-	if(distance != 0.0){\n\
-		theta = atan(distance);\n\
-	}\n\
-	vec2 vMapping = theta * vPosition.xy;\n\
-	vMapping = GLCoord2TextureCoord(vMapping);\n\
-		\n\
-	vec4 texture = texture2D(uSampler, vMapping);\n\
-	if(vMapping.x > 0.99 || vMapping.x < 0.01 || vMapping.y > 0.99 || vMapping.y < 0.01){\n\
-		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
-	} \n\
-	gl_FragColor = texture;\n\
-}\n\
-";
-},{}],5:[function(require,module,exports){
-module.exports = "\
-#ifdef GL_ES\n\
-precision highp float;\n\
-#endif\n\
-uniform vec3 uLensS;\n\
-uniform vec2 uLensF;\n\
-uniform vec2 uFov;\n\
-uniform sampler2D uSampler;\n\
-varying vec3 vPosition;\n\
-varying vec2 vTextureCoord;\n\
-vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord  * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);\n\
-}\n\
-void main(void){\n\
-	float scale = uLensS.z;\n\
-	vec3 vPos = vPosition;\n\
-	float Fx = uLensF.x;\n\
-	float Fy = uLensF.y;\n\
-	vec2 vMapping = vPos.xy;\n\
-	vMapping.x = vMapping.x + ((pow(vPos.y, 2.0)/scale)*vPos.x/scale)*-Fx;\n\
-	vMapping.y = vMapping.y + ((pow(vPos.x, 2.0)/scale)*vPos.y/scale)*-Fy;\n\
-	vMapping = vMapping * uLensS.xy;\n\
-	vMapping = GLCoord2TextureCoord(vMapping/scale);\n\
-	vec4 texture = texture2D(uSampler, vMapping);\n\
-	if(vMapping.x > 0.99 || vMapping.x < 0.01 || vMapping.y > 0.99 || vMapping.y < 0.01){\n\
-		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
-	}\n\
-	gl_FragColor = texture;\n\
-}\n\
-";
-},{}],6:[function(require,module,exports){
+},{"./shaders/fragment4.glfs":3,"./shaders/vertex.glvs":4}],3:[function(require,module,exports){
 module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\
@@ -295,15 +200,17 @@ precision highp float;\n\
 uniform vec2 uSize;\n\
 uniform vec3 uDistortion;\n\
 uniform float uScale;\n\
+uniform float uZoom;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
 vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord * vec2(1.0, -1.0)/ 2.0 + vec2(0.5, 0.5);\n\
+	return glCoord * vec2(1.0, -1.0) / 2.0 + vec2(0.5, 0.5);\n\
 }\n\
 void main(void){\n\
 	float scale = uScale;\n\
-	vec3 vPos = vPosition;\n\
+  float zoom = uZoom;\n\
+	vec3 vPos = vPosition / zoom;\n\
   float ratio = uSize[0] / uSize[1];\n\
   float k3 = uDistortion[0] / 100.0;\n\
   float k5 = uDistortion[1] / 100.0;\n\
@@ -329,71 +236,7 @@ void main(void){\n\
 	gl_FragColor = texture;\n\
 }\n\
 ";
-},{}],7:[function(require,module,exports){
-module.exports = "\
-#ifdef GL_ES\n\
-precision highp float;\n\
-#endif\n\
-uniform vec4 uLens;\n\
-uniform vec2 uFov;\n\
-uniform sampler2D uSampler;\n\
-varying vec3 vPosition;\n\
-varying vec2 vTextureCoord;\n\
-vec2 TextureCoord2GLCoord(vec2 textureCoord) {\n\
-	return (textureCoord - vec2(0.5, 0.5)) * 2.0;\n\
-}\n\
-vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord / 2.0 + vec2(0.5, 0.5);\n\
-}\n\
-void main(void){\n\
-	vec2 vMapping = vec2(vTextureCoord.x, 1.0 - vTextureCoord.y);\n\
-	vMapping = TextureCoord2GLCoord(vMapping);\n\
-	//TODO insert Code\n\
-	float F = uLens.x/ uLens.w;\n\
-	float seta = length(vMapping) / F;\n\
-	vMapping = sin(seta) * F / length(vMapping) * vMapping;\n\
-	vMapping *= uLens.w * 1.414;\n\
-	vMapping = GLCoord2TextureCoord(vMapping);\n\
-	vec4 texture = texture2D(uSampler, vMapping);\n\
-	if(vMapping.x > 0.99 || vMapping.x < 0.01 || vMapping.y > 0.99 || vMapping.y < 0.01){\n\
-		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
-	} \n\
-	gl_FragColor = texture;\n\
-}\n\
-";
-},{}],8:[function(require,module,exports){
-module.exports = "\
-#ifdef GL_ES\n\
-precision highp float;\n\
-#endif\n\
-uniform vec4 uLens;\n\
-uniform vec2 uFov;\n\
-uniform sampler2D uSampler;\n\
-varying vec3 vPosition;\n\
-varying vec2 vTextureCoord;\n\
-vec2 TextureCoord2GLCoord(vec2 textureCoord) {\n\
-	return (textureCoord - vec2(0.5, 0.5)) * 2.0;\n\
-}\n\
-vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
-	return glCoord / 2.0 + vec2(0.5, 0.5);\n\
-}\n\
-void main(void){\n\
-	vec2 vMapping = vec2(vTextureCoord.x, 1.0 - vTextureCoord.y);\n\
-	vMapping = TextureCoord2GLCoord(vMapping);\n\
-	//TOD insert Code\n\
-	float F = uLens.x/ uLens.w;\n\
-	float seta = length(vMapping) / F;\n\
-	vMapping = sin(seta) * F / length(vMapping) * vMapping;\n\
-	vMapping *= uLens.w * 1.414;\n\
-	vMapping = GLCoord2TextureCoord(vMapping);\n\
-	vec4 texture = texture2D(uSampler, vMapping);\n\
-	if(vMapping.x > 0.99 || vMapping.x < 0.01 || vMapping.y > 0.99 || vMapping.y < 0.01){\n\
-		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
-	} \n\
-	gl_FragColor = texture;\n\
-}\n\
-";
-},{}],9:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 module.exports = "\
 #ifdef GL_ES\n\
 precision highp float;\n\
