@@ -87,6 +87,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const dist = options.dist || {
     scale: 0,
     zoom: 1,
+    zoomAnchor: { x: 0.5, y: 0.5 },
     k3: 0,
     k5: 0,
     k7: 0,
@@ -102,6 +103,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const uSampler = glContext.getUniformLocation(program, 'uSampler');
   const uScale = glContext.getUniformLocation(program, 'uScale');
   const uZoom = glContext.getUniformLocation(program, 'uZoom');
+  const uZoomAnchor = glContext.getUniformLocation(program, 'uZoomAnchor');
   const uSize = glContext.getUniformLocation(program, 'uSize');
   const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
@@ -152,6 +154,7 @@ const FisheyeGl = function FisheyeGl(opts) {
 
     glContext.uniform1f(uScale, dist.scale);
     glContext.uniform1f(uZoom, dist.zoom);
+    glContext.uniform2fv(uZoomAnchor, [dist.zoomAnchor.x, dist.zoomAnchor.y]);
     glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
     glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
@@ -201,6 +204,7 @@ uniform vec2 uSize;\n\
 uniform vec3 uDistortion;\n\
 uniform float uScale;\n\
 uniform float uZoom;\n\
+uniform vec2 uZoomAnchor;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
@@ -210,7 +214,10 @@ vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
 void main(void){\n\
 	float scale = uScale;\n\
   float zoom = uZoom;\n\
-	vec3 vPos = vPosition / zoom;\n\
+  vec2 zoomAnchor = uZoomAnchor;\n\
+	vec3 vPos;\n\
+  vPos[0] = (vPosition[0]) / zoom + 2.0 * (zoomAnchor[0] - 0.5);\n\
+  vPos[1] = (vPosition[1]) / zoom + 2.0 * (zoomAnchor[1] - 0.5);\n\
   float ratio = uSize[0] / uSize[1];\n\
   float k3 = uDistortion[0] / 100.0;\n\
   float k5 = uDistortion[1] / 100.0;\n\

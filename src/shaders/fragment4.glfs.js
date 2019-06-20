@@ -6,6 +6,7 @@ uniform vec2 uSize;\n\
 uniform vec3 uDistortion;\n\
 uniform float uScale;\n\
 uniform float uZoom;\n\
+uniform vec2 uZoomAnchor;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
@@ -15,7 +16,10 @@ vec2 GLCoord2TextureCoord(vec2 glCoord) {\n\
 void main(void){\n\
 	float scale = uScale;\n\
   float zoom = uZoom;\n\
-	vec3 vPos = vPosition / zoom;\n\
+  vec2 zoomAnchor = uZoomAnchor;\n\
+	vec3 vPos;\n\
+  vPos[0] = (vPosition[0]) / zoom + 2.0 * (zoomAnchor[0] - 0.5);\n\
+  vPos[1] = (vPosition[1]) / zoom + 2.0 * (zoomAnchor[1] - 0.5);\n\
   float ratio = uSize[0] / uSize[1];\n\
   float k3 = uDistortion[0] / 100.0;\n\
   float k5 = uDistortion[1] / 100.0;\n\

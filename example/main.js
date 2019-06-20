@@ -40,6 +40,8 @@ jQuery(document).ready(function($) {
     $("#display .k5")[0].innerHTML    = distorter.dist.k5;
     $("#display .k7")[0].innerHTML    = distorter.dist.k7;
     $("#display .zoom")[0].innerHTML    = distorter.dist.zoom;
+    $("#display .zoomAnchorX")[0].innerHTML    = distorter.dist.zoomAnchor.x;
+    $("#display .zoomAnchorY")[0].innerHTML    = distorter.dist.zoomAnchor.y;
   }
 
   function readSliders() {
@@ -48,6 +50,8 @@ jQuery(document).ready(function($) {
     distorter.dist.k5    = parseFloat($("#k5").val());
     distorter.dist.k7    = parseFloat($("#k7").val());
     distorter.dist.zoom    = parseFloat($("#zoom").val());
+    distorter.dist.zoomAnchor.x    = parseFloat($("#zoomAnchorX").val());
+    distorter.dist.zoomAnchor.y    = parseFloat($("#zoomAnchorY").val());
   }
 
   function writeHash() {
@@ -56,6 +60,8 @@ jQuery(document).ready(function($) {
     setUrlHashParameter("k5",     distorter.dist.k5);
     setUrlHashParameter("k7",     distorter.dist.k7);
     setUrlHashParameter("zoom",     distorter.dist.zoom);
+    setUrlHashParameter("zoomAnchorX",     distorter.dist.zoomAnchor.x);
+    setUrlHashParameter("zoomAnchorY",     distorter.dist.zoomAnchor.y);
   }
 
   function readHash() { 
@@ -64,6 +70,8 @@ jQuery(document).ready(function($) {
     distorter.dist.k5      = parseFloat(getUrlHashParameter("k5"))     || distorter.dist.k5; 
     distorter.dist.k7      = parseFloat(getUrlHashParameter("k7"))     || distorter.dist.k7; 
     distorter.dist.zoom      = parseFloat(getUrlHashParameter("zoom"))     || distorter.dist.zoom; 
+    distorter.dist.zoomAnchor.x      = parseFloat(getUrlHashParameter("zoomAnchorX"))     || distorter.dist.zoomAnchor.x; 
+    distorter.dist.zoomAnchor.y      = parseFloat(getUrlHashParameter("zoomAnchorY"))     || distorter.dist.zoomAnchor.y; 
   }
 
   // not quite working:
@@ -87,6 +95,8 @@ jQuery(document).ready(function($) {
     $("#k5").val(distorter.dist.k5);
     $("#k7").val(distorter.dist.k7);
     $("#zoom").val(distorter.dist.zoom);
+    $("#zoomAnchorX").val(distorter.dist.zoomAnchor.x);
+    $("#zoomAnchorY").val(distorter.dist.zoomAnchor.y);
   }
 
 

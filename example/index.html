@@ -43,15 +43,13 @@
       <div class="col-md-6">
 
         <p id="display">
-          a: <span class="a"></span>,
-          b: <span class="b"></span>,
-          Fx: <span class="Fx"></span>,
-          Fy: <span class="Fy"></span>,
           scale: <span class="scale"></span>,
           k3: <span class="k3"></span>,
           k5: <span class="k5"></span>,
           k7: <span class="k7"></span>
           zoom: <span class="zoom"></span>
+          zoomAnchorX: <span class="zoomAnchorX"></span>
+          zoomAnchorY: <span class="zoomAnchorY"></span>
         </p>
         <p class="exif-camera"></p>
         <p><a onClick="$('.exif').toggle();">Show full EXIF data</a></p>
@@ -72,6 +70,10 @@
           <dd><input id="k7" type="range" min="-100.0" max="100.0" value="0.0" step="0.01"/></dd>
           <dt>zoom</dt>
           <dd><input id="zoom" type="range" min="1" max="4" value="1.0" step="0.01"/></dd>
+          <dt>zoomAnchorX</dt>
+          <dd><input id="zoomAnchorX" type="range" min="0" max="1" value="0.5" step="0.01"/></dd>
+          <dt>zoomAnchorY</dt>
+          <dd><input id="zoomAnchorY" type="range" min="0" max="1" value="0.5" step="0.01"/></dd>
         </dl>
       </div>
       <video
