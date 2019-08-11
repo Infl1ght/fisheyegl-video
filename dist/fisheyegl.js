@@ -88,6 +88,7 @@ const FisheyeGl = function FisheyeGl(opts) {
     scale: 0,
     zoom: 1,
     zoomAnchor: { x: 0.5, y: 0.5 },
+    shift: { x: 0.0, y: 0.0 },
     k3: 0,
     k5: 0,
     k7: 0,
@@ -104,6 +105,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const uScale = glContext.getUniformLocation(program, 'uScale');
   const uZoom = glContext.getUniformLocation(program, 'uZoom');
   const uZoomAnchor = glContext.getUniformLocation(program, 'uZoomAnchor');
+  const uShift = glContext.getUniformLocation(program, 'uShift');
   const uSize = glContext.getUniformLocation(program, 'uSize');
   const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
@@ -155,6 +157,7 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.uniform1f(uScale, dist.scale);
     glContext.uniform1f(uZoom, dist.zoom);
     glContext.uniform2fv(uZoomAnchor, [dist.zoomAnchor.x, dist.zoomAnchor.y]);
+    glContext.uniform2fv(uShift, [dist.shift.x, dist.shift.y]);
     glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
     glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
@@ -205,6 +208,7 @@ uniform vec3 uDistortion;\n\
 uniform float uScale;\n\
 uniform float uZoom;\n\
 uniform vec2 uZoomAnchor;\n\
+uniform vec2 uShift;\n\
 uniform sampler2D uSampler;\n\
 varying vec3 vPosition;\n\
 varying vec2 vTextureCoord;\n\
@@ -215,9 +219,10 @@ void main(void){\n\
 	float scale = uScale;\n\
   float zoom = uZoom;\n\
   vec2 zoomAnchor = uZoomAnchor;\n\
+  vec2 shift = uShift;\n\
 	vec3 vPos;\n\
-  vPos[0] = (vPosition[0]) / zoom + 2.0 * (zoomAnchor[0] - 0.5);\n\
-  vPos[1] = (vPosition[1]) / zoom + 2.0 * (zoomAnchor[1] - 0.5);\n\
+  vPos[0] = vPosition[0] / zoom + 2.0 * (zoomAnchor[0] - 0.5);\n\
+  vPos[1] = vPosition[1] / zoom - 2.0 * (zoomAnchor[1] - 0.5);\n\
   float ratio = uSize[0] / uSize[1];\n\
   float k3 = uDistortion[0] / 100.0;\n\
   float k5 = uDistortion[1] / 100.0;\n\
@@ -225,16 +230,18 @@ void main(void){\n\
 	vec2 vMapping = vPos.xy;\n\
   vMapping.x *= uSize[0] / 2.0; \n\
   vMapping.y *= uSize[1] / 2.0; \n\
-  float off_x = vMapping.x;\n\
-  float off_y = vMapping.y;\n\
+  float centerX = uSize[0] * (shift.x / 200.0);\n\
+  float centerY = uSize[1] * (shift.y / 200.0);\n\
+  float off_x = vMapping.x - centerX;\n\
+  float off_y = vMapping.y - centerY;\n\
   float r2 = (off_x * off_x) + (off_y * off_y);\n\
-  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);;\n\
+  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);\n\
   float r4 = r2 * r2;\n\
   float r6 = r2 * r2 * r2;\n\
   float rescale = pow(2.0, - scale / 100.0);\n\
   float radius_mult = rescale * (k3 * r2 + k5 * r4 + k7 * r6 + 1.0);\n\
-	vMapping.x = radius_mult * off_x / uSize[0] * 2.0;\n\
-	vMapping.y = radius_mult * off_y / uSize[1] * 2.0;\n\
+	vMapping.x = (centerX + radius_mult * off_x) / uSize[0] * 2.0;\n\
+	vMapping.y = (centerY + radius_mult * off_y) / uSize[1] * 2.0;\n\
 	vMapping = GLCoord2TextureCoord(vMapping);\n\
 	vec4 texture = texture2D(uSampler, vMapping);\n\
 	if(vMapping.x > 0.9999 || vMapping.x < 0.0001 || vMapping.y > 0.9999 || vMapping.y < 0.0001){\n\

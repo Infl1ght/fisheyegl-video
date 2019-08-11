@@ -50,6 +50,8 @@
           zoom: <span class="zoom"></span>
           zoomAnchorX: <span class="zoomAnchorX"></span>
           zoomAnchorY: <span class="zoomAnchorY"></span>
+          shiftX: <span class="shiftX"></span>
+          shiftY: <span class="shiftY"></span>
         </p>
         <p class="exif-camera"></p>
         <p><a onClick="$('.exif').toggle();">Show full EXIF data</a></p>
@@ -74,6 +76,10 @@
           <dd><input id="zoomAnchorX" type="range" min="0" max="1" value="0.5" step="0.01"/></dd>
           <dt>zoomAnchorY</dt>
           <dd><input id="zoomAnchorY" type="range" min="0" max="1" value="0.5" step="0.01"/></dd>
+          <dt>shiftX</dt>
+          <dd><input id="shiftX" type="range" min="-100.0" max="100.0" value="0.0" step="0.01"/></dd>
+          <dt>shiftY</dt>
+          <dd><input id="shiftY" type="range" min="-100.0" max="100.0" value="0.0" step="0.01"/></dd>
         </dl>
       </div>
       <video

@@ -7,6 +7,7 @@ uniform vec3 uDistortion;
 uniform float uScale;
 uniform float uZoom;
 uniform vec2 uZoomAnchor;
+uniform vec2 uShift;
 
 uniform sampler2D uSampler;
 
@@ -21,9 +22,10 @@ void main(void){
 	float scale = uScale;
   float zoom = uZoom;
   vec2 zoomAnchor = uZoomAnchor;
+  vec2 shift = uShift;
 	vec3 vPos;
-  vPos[0] = (vPosition[0]) / zoom + 2.0 * (zoomAnchor[0] - 0.5);
-  vPos[1] = (vPosition[1]) / zoom + 2.0 * (zoomAnchor[1] - 0.5);
+  vPos[0] = vPosition[0] / zoom + 2.0 * (zoomAnchor[0] - 0.5);
+  vPos[1] = vPosition[1] / zoom - 2.0 * (zoomAnchor[1] - 0.5);
   float ratio = uSize[0] / uSize[1];
   float k3 = uDistortion[0] / 100.0;
   float k5 = uDistortion[1] / 100.0;
@@ -33,18 +35,23 @@ void main(void){
   vMapping.x *= uSize[0] / 2.0; 
   vMapping.y *= uSize[1] / 2.0; 
 
-  float off_x = vMapping.x;
-  float off_y = vMapping.y;
+
+  float centerX = uSize[0] * (shift.x / 200.0);
+  float centerY = uSize[1] * (shift.y / 200.0);
+
+  float off_x = vMapping.x - centerX;
+  float off_y = vMapping.y - centerY;
+
   float r2 = (off_x * off_x) + (off_y * off_y);
-  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);;
+  r2 *= 4.0 / (uSize[0] * uSize[0] + uSize[1] * uSize[1]);
   float r4 = r2 * r2;
   float r6 = r2 * r2 * r2;
   float rescale = pow(2.0, - scale / 100.0);
   float radius_mult = rescale * (k3 * r2 + k5 * r4 + k7 * r6 + 1.0);
 
 
-	vMapping.x = radius_mult * off_x / uSize[0] * 2.0;
-	vMapping.y = radius_mult * off_y / uSize[1] * 2.0;
+	vMapping.x = (centerX + radius_mult * off_x) / uSize[0] * 2.0;
+	vMapping.y = (centerY + radius_mult * off_y) / uSize[1] * 2.0;
 
 	vMapping = GLCoord2TextureCoord(vMapping);
 

@@ -87,6 +87,7 @@ const FisheyeGl = function FisheyeGl(opts) {
     scale: 0,
     zoom: 1,
     zoomAnchor: { x: 0.5, y: 0.5 },
+    shift: { x: 0.0, y: 0.0 },
     k3: 0,
     k5: 0,
     k7: 0,
@@ -103,6 +104,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const uScale = glContext.getUniformLocation(program, 'uScale');
   const uZoom = glContext.getUniformLocation(program, 'uZoom');
   const uZoomAnchor = glContext.getUniformLocation(program, 'uZoomAnchor');
+  const uShift = glContext.getUniformLocation(program, 'uShift');
   const uSize = glContext.getUniformLocation(program, 'uSize');
   const uDistortion = glContext.getUniformLocation(program, 'uDistortion');
 
@@ -154,6 +156,7 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.uniform1f(uScale, dist.scale);
     glContext.uniform1f(uZoom, dist.zoom);
     glContext.uniform2fv(uZoomAnchor, [dist.zoomAnchor.x, dist.zoomAnchor.y]);
+    glContext.uniform2fv(uShift, [dist.shift.x, dist.shift.y]);
     glContext.uniform2fv(uSize, [glContext.drawingBufferWidth, glContext.drawingBufferHeight]);
     glContext.uniform3fv(uDistortion, [dist.k3, dist.k5, dist.k7]);
 
