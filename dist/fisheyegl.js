@@ -231,7 +231,7 @@ void main(void){\n\
   vMapping.x *= uSize[0] / 2.0; \n\
   vMapping.y *= uSize[1] / 2.0; \n\
   float centerX = uSize[0] * (shift.x / 200.0);\n\
-  float centerY = uSize[1] * (shift.y / 200.0);\n\
+  float centerY = -uSize[1] * (shift.y / 200.0);\n\
   float off_x = vMapping.x - centerX;\n\
   float off_y = vMapping.y - centerY;\n\
   float r2 = (off_x * off_x) + (off_y * off_y);\n\
