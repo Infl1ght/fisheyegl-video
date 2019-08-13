@@ -223,9 +223,9 @@ void main(void){\n\
 	vec3 vPos;\n\
   vPos[0] = vPosition[0] / zoom + 2.0 * (zoomAnchor[0] - 0.5);\n\
   vPos[1] = vPosition[1] / zoom - 2.0 * (zoomAnchor[1] - 0.5);\n\
-  float k3 = uDistortion[0] / 100.0;\n\
-  float k5 = uDistortion[1] / 100.0;\n\
-  float k7 = uDistortion[2] / 100.0;\n\
+  float k3 = uDistortion[0] / 200.0;\n\
+  float k5 = uDistortion[1] / 200.0;\n\
+  float k7 = uDistortion[2] / 200.0;\n\
 	vec2 vMapping = vPos.xy;\n\
   vMapping.x *= uSize[0] / 2.0; \n\
   vMapping.y *= uSize[1] / 2.0; \n\

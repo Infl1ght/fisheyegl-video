@@ -26,9 +26,9 @@ void main(void){
 	vec3 vPos;
   vPos[0] = vPosition[0] / zoom + 2.0 * (zoomAnchor[0] - 0.5);
   vPos[1] = vPosition[1] / zoom - 2.0 * (zoomAnchor[1] - 0.5);
-  float k3 = uDistortion[0] / 100.0;
-  float k5 = uDistortion[1] / 100.0;
-  float k7 = uDistortion[2] / 100.0;
+  float k3 = uDistortion[0] / 200.0;
+  float k5 = uDistortion[1] / 200.0;
+  float k7 = uDistortion[2] / 200.0;
 
 	vec2 vMapping = vPos.xy;
   vMapping.x *= uSize[0] / 2.0; 
