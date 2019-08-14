@@ -15,7 +15,7 @@ varying vec3 vPosition;
 varying vec2 vTextureCoord;
 
 vec2 GLCoord2TextureCoord(vec2 glCoord) {
-	return glCoord * vec2(1.0, -1.0) / 2.0 + vec2(0.5, 0.5);
+	return glCoord * vec2(1.0, -1.0) + vec2(0.5, 0.5);
 }
 
 void main(void){
@@ -49,8 +49,8 @@ void main(void){
   float radius_mult = rescale * (k3 * r2 + k5 * r4 + k7 * r6 + 1.0);
 
 
-	vMapping.x = (centerX + radius_mult * off_x) / uSize[0] * 2.0;
-	vMapping.y = (centerY + radius_mult * off_y) / uSize[1] * 2.0;
+	vMapping.x = (centerX + radius_mult * off_x) / uSize[0];
+	vMapping.y = (centerY + radius_mult * off_y) / uSize[1];
 
 	vMapping = GLCoord2TextureCoord(vMapping);
 
