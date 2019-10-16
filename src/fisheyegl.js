@@ -97,7 +97,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const { canvasDestination } = options;
   const destinationContext = canvasDestination.getContext('2d');
   const glContext = canvasBuffer.getContext('webgl');
-  
+
   const program = compileShader(glContext, shaders.vertex, shaders.fragment4);
   glContext.useProgram(program);
 
@@ -165,6 +165,8 @@ const FisheyeGl = function FisheyeGl(opts) {
 
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
     glContext.drawElements(glContext.TRIANGLES, model.indices.length, glContext.UNSIGNED_SHORT, 0);
+
+    destinationContext.drawImage(canvasBuffer, 0, 0);
   }
 
 
@@ -176,8 +178,6 @@ const FisheyeGl = function FisheyeGl(opts) {
     glContext.texImage2D(glContext.TEXTURE_2D, level, internalFormat, srcFormat, srcType, video);
 
     applyDistortion();
-
-    destinationContext.drawImage(canvasBuffer, 0, 0);
   }
 
   const distorter = {
