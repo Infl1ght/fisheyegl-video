@@ -45,6 +45,14 @@ void main(void){\n\
 	if(vMapping.x > 0.9999 || vMapping.x < 0.0001 || vMapping.y > 0.9999 || vMapping.y < 0.0001){\n\
 		texture = vec4(0.0, 0.0, 0.0, 1.0);\n\
 	}\n\
+  float lineX = (centerX + radius_mult * off_x) / uSize[0]; \n\
+  if(vPos.x > lineX - 0.001 && vPos.x < lineX + 0.001){\n\
+    texture = vec4(1.0, 0.0, 0.0, 1.0);\n\
+  }\n\
+  float lineMax = 200.0 / uSize[0];\n\
+  if(vPos.x > lineMax - 0.005 && vPos.x < lineMax + 0.005){\n\
+    texture = vec4(0.0, 0.0, 1.0, 1.0);\n\
+  }\n\
 	gl_FragColor = texture;\n\
 }\n\
 ";
