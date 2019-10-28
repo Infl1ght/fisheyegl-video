@@ -97,6 +97,7 @@ const FisheyeGl = function FisheyeGl(opts) {
   const { canvasDestination } = options;
   const destinationContext = canvasDestination.getContext('2d');
   const glContext = canvasBuffer.getContext('webgl');
+  glContext.viewport(0, 0, glContext.canvas.width, glContext.canvas.height);
 
   const program = compileShader(glContext, shaders.vertex, shaders.fragment4);
   glContext.useProgram(program);
